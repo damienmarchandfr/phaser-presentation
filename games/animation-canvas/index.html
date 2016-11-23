@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<canvas id="animation" style="border: black solid 2px;">
+
+</canvas>
+<script src="../js/inherit-js/inherit-js.js"></script>
+<script type="application/javascript">
+    var gamePath = '../games/animation-canvas/';
+    var img = new Image();
+    img.src = gamePath + 'assets/dude.png';
+
+    var canvas = document.getElementById("animation");
+
+    var context = canvas.getContext("2d");
+
+    //canvas
+    canvas.width = 640;
+    canvas.height = 480;
+
+    //direction change when key down
+    var d = 'idle';
+
+    var Dude = inherit({
+        name: 'Dude',
+
+        proto: {
+            __constructor: function (x, y, animation, imgSrc, frame) { // constructor
+                this.x = Number(x);
+                this.y = Number(y);
+                this.animation = animation;
+                this.img = new Image();
+                this.img.src = imgSrc;
+                //default idle animation
+                this.frame = frame ? frame : 4;
+
+                var spriteSheeteWidth = 288;
+                var spriteSheetHeigth = 48;
+
+                var numbersOfSprites = 9;
+
+                this.width = spriteSheeteWidth / numbersOfSprites;
+                this.height = spriteSheetHeigth;
+            },
+
+            move: function (animation) {
+                this.animation = animation;
+                switch (this.animation) {
+                    case 'left':
+                        this.frame = this.frame > 3 ? 0 : this.frame;
+                        this.x--;
+                        break;
+                    case 'right':
+                        this.x++;
+                        this.frame = (this.frame > 8 || this.frame < 5) ? 5 : this.frame;
+                        break;
+                    default :
+                        this.frame = 4;
+                }
+                context.clearRect(this.x, this.y, this.width, this.height);
+                context.drawImage(this.img, this.width * this.frame, 0, this.width, this.height, this.x, this.y, this.width, this.height);
+                this.frame++;
+
+            }
+        }
+    });
+
+
+    //wait for image loaded
+    img.onload = function () {
+        var dude = new Dude(0, 0, 'idle', gamePath + 'assets/dude.png');
+        var direction = 'idle';
+        document.addEventListener("keydown", onKeyDown, true);
+        document.addEventListener("keyup", onKeyUp, true);
+
+        function onKeyDown(e) {
+            switch (e.code) {
+                case 'ArrowRight' :
+                    direction = 'right';
+                    break;
+                case 'ArrowLeft' :
+                    direction = 'left';
+                    break;
+                default :
+                    direction = 'idle';
+            }
+        }
+
+        function onKeyUp(e) {
+            direction = 'idle';
+        }
+
+        setInterval(function () {
+            dude.move(direction);
+        }, 100);
+    };
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "phaser",
+  "main": "index.js",
+  "description": "",
+  "license": "MIT",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "inherit-js": "*",
+    "reveal-js": "^2.6.2"
+  }
+}

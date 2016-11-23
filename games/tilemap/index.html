@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<script src="//cdn.jsdelivr.net/phaser/2.6.2/phaser.min.js"></script>
+<script src="../../bower_components/phaser/build/phaser.js"></script>
+<div id="demo"></div>
+
+<script>
+
+
+    var roadLayer;
+    var map;
+    var player;
+    var player2;
+
+    var playerRotationSpeed = 40;
+    var playerThrust = 200;
+    var playerReverse = 600;
+    var carMaxSpeed = 300;
+
+    var gamePath = '../games/tilemap/';
+    var game = new Phaser.Game('100%', '100%', Phaser.CANVAS, 'demo', {
+        preload: preload,
+        create: create,
+        update: update,
+        render: render
+    }, false, false);
+
+    function preload() {
+        game.load.tilemap('map', gamePath + 'assets/map.json', null, Phaser.Tilemap.TILED_JSON);
+        game.load.image('tiles', gamePath + 'assets/tiles.png');
+        game.load.spritesheet('cars', gamePath + 'assets/cars.png', 180 / 5, 73);
+    }
+
+    function create() {
+
+
+        game.physics.startSystem(Phaser.Physics.P2JS);
+        game.physics.p2.setImpactEvents(true);
+
+        map = game.add.tilemap('map');
+        map.addTilesetImage('tiles');
+
+        roadLayer = map.createLayer('road');
+
+        map.setCollision([515, 516, 563]);
+
+        game.physics.p2.convertTilemap(map, roadLayer);
+
+        map.createLayer('1');
+        map.createLayer('2');
+        player = game.add.sprite(450, 600, 'cars');
+        player2 = game.add.sprite(player.x + 64, player.y, 'cars', 1);
+
+        game.physics.p2.enable([player, player2], true);
+
+
+        roadLayer.resizeWorld();
+
+        game.camera.follow(player);
+
+        cursors = game.input.keyboard.createCursorKeys();
+    }
+
+
+    function update() {
+        if (cursors.left.isDown) {
+            player.body.rotateLeft(playerRotationSpeed);
+        }
+        else if (cursors.right.isDown) {
+            player.body.rotateRight(playerRotationSpeed);
+        }
+        else {
+            player.body.setZeroRotation();
+        }
+        if (cursors.down.isDown) {
+            player.body.thrust(playerThrust);
+        }
+        else if (cursors.up.isDown) {
+            player.body.reverse(playerReverse);
+        }
+        else {
+            player.body.damping = 0.8;
+        }
+
+
+        if (game.input.keyboard.isDown(Phaser.Keyboard.Q)) {
+            player2.body.rotateLeft(playerRotationSpeed);
+        }
+        else if (game.input.keyboard.isDown(Phaser.Keyboard.D)) {
+            player2.body.rotateRight(playerRotationSpeed);
+        } else {
+            player2.body.setZeroRotation();
+        }
+
+        if (game.input.keyboard.isDown(Phaser.Keyboard.S)) {
+            player2.body.thrust(playerThrust);
+        }
+        else if (game.input.keyboard.isDown(Phaser.Keyboard.Z)) {
+            player2.body.reverse(playerReverse);
+        } else {
+            player2.body.damping = 0.8;
+        }
+
+        constrainVelocity(player, carMaxSpeed);
+        constrainVelocity(player2, carMaxSpeed);
+
+    }
+
+    function render() {
+        game.debug.spriteInfo(player, 32, 32);
+    }
+
+    function constrainVelocity(sprite, maxVelocity) {
+        var body = sprite.body;
+        var angle, currVelocitySqr, vx, vy;
+        vx = body.data.velocity[0];
+        vy = body.data.velocity[1];
+
+        currVelocitySqr = vx * vx + vy * vy;
+        if (currVelocitySqr > maxVelocity * maxVelocity) {
+            angle = Math.atan2(vy, vx);
+            vx = Math.cos(angle) * maxVelocity;
+            vy = Math.sin(angle) * maxVelocity;
+            body.data.velocity[0] = vx;
+            body.data.velocity[1] = vy;
+            console.log('limited speed to: ' + maxVelocity);
+        }
+    }
+
+
+</script>
+</body>
+</html>

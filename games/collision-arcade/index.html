@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<div id="demo"></div>
+
+<script src="//cdn.jsdelivr.net/phaser/2.6.2/phaser.min.js"></script>
+<script>
+    var game = new Phaser.Game(640, 480, Phaser.AUTO, 'demo', {
+        preload: preload,
+        create: create,
+        update: update,
+        render: render
+    });
+    var gamePath = '../games/collision-arcade/';
+    var ball, player1, player2;
+    var scorePlayer1 = 0;
+    var scorePlayer2 = 0;
+    var style = {font: "bold 32px Arial", fill: "#fff"};
+    var score;
+
+    function preload() {
+        game.load.image('ball', gamePath + 'assets/ball.png', 32, 32);
+        game.load.image('player1', gamePath + 'assets/player1.png', 32, 192);
+        game.load.image('player2', gamePath + 'assets/player2.png', 32, 192);
+    }
+
+    function create() {
+        game.physics.startSystem(Phaser.Physics.ARCADE);
+
+        ball = game.add.sprite(0, 0, 'ball');
+        ball.x = game.width / 2 - ball.width / 2;
+        ball.y = game.height / 2 - ball.height / 2;
+
+        player1 = game.add.sprite(0, 0, 'player1');
+        player1.y = game.height / 2 - player1.height / 2;
+
+        player2 = game.add.sprite(0, 0, 'player2');
+        player2.x = game.width - player2.width;
+        player2.y = game.height / 2 - player2.height / 2;
+
+
+        game.physics.arcade.enable([player1, player2, ball]);
+        //create event when ball leave game
+        ball.checkWorldBounds = true;
+
+        ball.body.collideWorldBounds = true;
+        player1.body.collideWorldBounds = true;
+        player2.body.collideWorldBounds = true;
+
+        //after bounce speed*1.1
+        ball.body.bounce.set(1);
+        ball.body.velocity.x = 200;
+        ball.body.velocity.y = 0;
+
+
+        //An immovable Body will not receive any impacts from other bodies.
+        player1.body.immovable = true;
+        player2.body.immovable = true;
+
+        ball.body.onWorldBounds = new Phaser.Signal();
+        ball.body.onWorldBounds.add(gameOver, this);
+
+        //  The Text is positioned at 0, 100
+        score = game.add.text(0, 0, updateScore(), style);
+        score.x = game.width / 2 - score.width / 2;
+
+    }
+
+    function update() {
+        score.text = updateScore();
+        game.physics.arcade.collide(player1, ball, function () {
+
+            if (game.input.keyboard.isDown(Phaser.Keyboard.S)) {
+                ball.body.velocity.y += 150;
+            }
+            else if (game.input.keyboard.isDown(Phaser.Keyboard.Z)) {
+                ball.body.velocity.y -= 150;
+            } else {
+                ball.body.velocity.y = 0;
+            }
+
+            if (ball.body.velocity.x < 400) {
+                ball.body.velocity.x += 30;
+            }
+        });
+        game.physics.arcade.collide(player2, ball, function () {
+            if (game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
+                ball.body.velocity.y += 150;
+            }
+            else if (game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
+                ball.body.velocity.y -= 150;
+            } else {
+                ball.body.velocity.y = 0;
+            }
+
+            if (ball.body.velocity.x < 400) {
+                ball.body.velocity.x -= 30;
+            }
+        });
+
+        if (game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
+            player2.y += 5;
+        }
+        else if (game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
+            player2.y -= 5;
+        }
+
+        if (game.input.keyboard.isDown(Phaser.Keyboard.S)) {
+            player1.y += 5;
+        }
+        else if (game.input.keyboard.isDown(Phaser.Keyboard.Z)) {
+            player1.y -= 5;
+        }
+    }
+
+    function render() {
+
+        game.debug.body(ball);
+
+        game.debug.body(player1);
+        game.debug.body(player2);
+
+    }
+
+    function gameOver(sprite) {
+        if (sprite.body.blocked.right) {
+            scorePlayer1++;
+            initGame();
+        } else if (sprite.body.blocked.left) {
+            scorePlayer2++;
+            initGame();
+        }
+    }
+
+    function updateScore() {
+        var t = scorePlayer1 + ' | ' + scorePlayer2;
+        return t;
+    }
+
+    function initGame() {
+        ball.x = game.width / 2 - ball.width / 2;
+        ball.y = game.height / 2 - ball.height / 2;
+        ball.body.velocity.x = 200;
+        ball.body.velocity.y = 0;
+    }
+</script>
+</body>
+</html>

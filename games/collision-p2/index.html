@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<div id="demo"></div>
+
+<script src="//cdn.jsdelivr.net/phaser/2.6.2/phaser.min.js"></script>
+<script>
+    var game = new Phaser.Game(640, 480, Phaser.AUTO, 'demo', {
+        preload: preload,
+        create: create,
+        update: update
+    });
+    var gamePath = '../games/collision-p2/';
+    var ball = {}, player1 = {}, player2 = {};
+    var scorePlayer1 = 0;
+    var scorePlayer2 = 0;
+    var style = {font: "bold 32px Arial", fill: "#fff"};
+    var score;
+
+    function preload() {
+        game.load.image('ball', gamePath + 'assets/ball.png', 32, 32);
+        game.load.image('player1', gamePath + 'assets/player1.png', 98, 192);
+        game.load.image('player2', gamePath + 'assets/player2.png', 42, 192);
+        game.load.physics("sprite_physics", gamePath + "assets/collisions.json");
+    }
+
+    function create() {
+        game.physics.startSystem(Phaser.Physics.P2JS);
+        game.physics.p2.restitution = 1.001;
+        game.physics.p2.friction = 0;
+        game.physics.p2.applyGravity = false;
+
+        ball = game.add.sprite(0, 0, 'ball');
+        player1 = game.add.sprite(0, 0, 'player1');
+        player2 = game.add.sprite(0, 0, 'player2');
+
+        game.physics.p2.enable([player1, player2, ball], true);
+
+        player2.body.clearShapes();
+        player2.body.loadPolygon("sprite_physics", "player2");
+        player1.body.clearShapes();
+        player1.body.loadPolygon("sprite_physics", "player1");
+        ball.body.clearShapes();
+        ball.body.loadPolygon("sprite_physics", "ball");
+
+
+        ball.body.x = game.width / 2 - ball.width / 2;
+        ball.body.y = game.height / 2 - ball.height / 2;
+
+
+        player1.body.y = game.height / 2;
+        player1.body.x = player1.width/2;
+
+
+        player2.body.x = game.width - player2.width / 2;
+        player2.body.y = game.height / 2;
+
+        player1.body.kinematic = true;
+        player2.body.kinematic = true;
+
+        ball.body.fixedRotation = true;
+
+        ball.body.collideWorldBounds = true;
+        player1.body.collideWorldBounds = true;
+        player2.body.collideWorldBounds = true;
+
+        ball.body.velocity.x = 200;
+
+        ball.body.damping = 0;
+
+        ball.body.mass = 0.1;
+
+        //  The Text is positioned at 0, 100
+        score = game.add.text(0, 0, updateScore(), style);
+        score.x = game.width / 2 - score.width / 2;
+
+        ball.body.onBeginContact.add(gameOver, this);
+
+    }
+
+    function update() {
+        score.text = updateScore();
+
+        player2.body.setZeroVelocity();
+        player1.body.setZeroVelocity();
+
+
+        if (game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
+            player2.body.moveDown(200);
+        }
+        else if (game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
+            player2.body.moveUp(200);
+        }
+
+        if (game.input.keyboard.isDown(Phaser.Keyboard.S)) {
+            player1.body.moveDown(200);
+        }
+        else if (game.input.keyboard.isDown(Phaser.Keyboard.Z)) {
+            player1.body.moveUp(200);
+        }
+    }
+
+    function gameOver(body) {
+        if (!body) {
+            console.log(ball.position.x);
+            if (ball.position.x + ball.width > game.width - 3) {
+                scorePlayer1++;
+                initGame();
+            } else if (ball.position.x < ball.width) {
+                scorePlayer2++;
+                initGame();
+            }
+        }
+    }
+
+    function updateScore() {
+        var t = scorePlayer1 + ' | ' + scorePlayer2;
+        return t;
+    }
+
+    function initGame() {
+        ball.body.x = game.width / 2 - ball.width / 2;
+        ball.body.y = game.height / 2 - ball.height / 2;
+        ball.body.velocity.x = 200;
+        ball.body.velocity.y = 0;
+    }
+</script>
+</body>
+</html>
